@@ -1,5 +1,3 @@
-import re
-
 from machine import machine
 from pprint import pprint
 
