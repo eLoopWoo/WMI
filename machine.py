@@ -99,13 +99,13 @@ class machine(object):
                              desktop.WallpaperStretched, desktop.WallpaperTiled))
         return desktops
 
-    def list_registry_keys(self):
-        r = wmi.Registry()
-        result, names = r.EnumKey(
-            hDefKey=_winreg.HKEY_LOCAL_MACHINE,
-            sSubKeyName="Software"
-        )
-        keys = []
-        for key in names:
-            keys.append(key)
-        return keys
+    # def list_registry_keys(self):
+    #     r = wmi.Registry()
+    #     result, names = r.EnumKey(
+    #         hDefKey=_winreg.HKEY_LOCAL_MACHINE,
+    #         sSubKeyName="Software"
+    #     )
+    #     keys = []
+    #     for key in names:
+    #         keys.append(key)
+    #     return keys
