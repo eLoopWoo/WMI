@@ -8,3 +8,12 @@ x = wmi.WMI()
 for process in x.Win32_Process():
     print process.name
 
+for disk in x.Win32_LogicalDisk(DriveType=3):
+    print disk
+
+for interface in x.Win32_NetworkAdapterConfiguration(IPEnabled=1):
+    print interface
+
+for s in x.Win32_StartupCommand():
+    print s
+
