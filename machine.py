@@ -5,4 +5,6 @@ import win32con
 
 
 x = wmi.WMI()
-print x
+for process in x.Win32_Process():
+    print process.name
+
