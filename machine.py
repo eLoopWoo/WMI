@@ -17,3 +17,7 @@ for interface in x.Win32_NetworkAdapterConfiguration(IPEnabled=1):
 for s in x.Win32_StartupCommand():
     print s
 
+for share in x.Win32_Share():
+    print share
+
+print x
