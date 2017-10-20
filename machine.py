@@ -49,13 +49,12 @@ class Machine(object):
             shared_drives[share.Name] = share.Path
         return shared_drives
 
-    def list_print_jobs(self):
-        print_jobs = {}
+    def list_printer_info(self):
+        printer_info = {}
         for printer in self.wmi.Win32_Printer():
-            print printer.Caption
             for job in self.wmi.Win32_PrintJob(DriverName=printer.DriverName):
-                print_jobs[printer.Caption] = job.Document
-        return print_jobs
+                printer_info[printer.Caption] = job.Document
+        return printer_info
 
     def list_disk_partitions(self):
         hard_drives = {}
@@ -109,3 +108,16 @@ class Machine(object):
     #     for key in names:
     #         keys.append(key)
     #     return keys
+
+    def get_info(self):
+        machine_info = dict()
+        machine_info['network_info'] = self.show_network_ip_mac_addresses()
+        machine_info['diks_info'] = self.list_disk_partitions()
+        machine_info['proc_info'] = self.list_all_running_processes()
+        machine_info['shared_info'] = self.list_shared_drives()
+        machine_info['space_info'] = self.percentage_free_space_each_disk()
+        machine_info['stratup_info'] = self.show_running_on_startup_paths()
+        machine_info['printer_info'] = self.list_printer_info()
+        machine_info['drive_info'] = self.find_drive_types()
+        machine_info['wallpaper_info'] = self.find_current_wallpaper()
+        return machine_info
