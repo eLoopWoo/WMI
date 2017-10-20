@@ -29,8 +29,8 @@ class Machine(object):
     def get_network_ip_mac_addresses(self):
         network = {}
         for interface in self.wmi.Win32_NetworkAdapterConfiguration(IPEnabled=1):
+            interface_info = dict()
             for index, data in enumerate(interface.IPAddress):
-                interface_info = dict()
                 if index == 0:
                     interface_info['ipv4_address'] = data
                 if index == 1:
@@ -41,30 +41,31 @@ class Machine(object):
                     if 'undefined_data' not in interface_info:
                         interface_info['undefined_data'] = []
                     interface_info['undefined_data'].append(data)
-            ipv4_address = interface_info['ipv4_address']
-            network[ipv4_address] = interface_info
+            if interface_info:
+                name = interface_info.values()[0]
+                network[name] = interface_info
         return network
 
-    def show_running_on_startup_paths(self):
+    def get_running_on_startup_paths(self):
         startup_paths = []
         for s in self.wmi.Win32_StartupCommand():
             startup_paths.append("[%s] %s <%s>" % (s.Location, s.Caption, s.Command))
         return startup_paths
 
-    def list_shared_drives(self):
+    def get_shared_drives(self):
         shared_drives = {}
         for share in self.wmi.Win32_Share():
             shared_drives[share.Name] = share.Path
         return shared_drives
 
-    def list_printer_info(self):
+    def get_printer_info(self):
         printer_info = {}
         for printer in self.wmi.Win32_Printer():
             for job in self.wmi.Win32_PrintJob(DriverName=printer.DriverName):
                 printer_info[printer.Caption] = job.Document
         return printer_info
 
-    def list_disk_partitions(self):
+    def get_disk_partitions(self):
         hard_drives = {}
         for physical_disk in self.wmi.Win32_DiskDrive():
             hard_drives[physical_disk.Caption] = {}
@@ -74,7 +75,7 @@ class Machine(object):
                     hard_drives[physical_disk.Caption][partition.Caption][logical_disk.Caption] = {}
         return hard_drives
 
-    def find_drive_types(self):
+    def get_drives_type(self):
         DRIVE_TYPES = {
             0: "Unknown",
             1: "No Root Directory",
@@ -98,10 +99,9 @@ class Machine(object):
         )
         return pid
 
-    def find_current_wallpaper(self):
-        full_username = win32api.GetUserNameEx(win32con.NameSamCompatible)
+    def get_current_wallpaper(self):
         desktops = []
-        for desktop in self.wmi.Win32_Desktop(Name=full_username):
+        for desktop in self.wmi.Win32_Desktop():
             desktops.append((desktop.Wallpaper or "[No Wallpaper]",
                              desktop.WallpaperStretched, desktop.WallpaperTiled))
         return desktops
@@ -120,13 +120,14 @@ class Machine(object):
 
     def get_info(self):
         machine_info = dict()
+        machine_info['operating_system_info'] = self.get_operating_system()
         machine_info['network_info'] = self.get_network_ip_mac_addresses()
-        machine_info['diks_info'] = self.list_disk_partitions()
+        machine_info['diks_info'] = self.get_disk_partitions()
         machine_info['proc_info'] = self.get_processes()
-        machine_info['shared_info'] = self.list_shared_drives()
+        machine_info['shared_info'] = self.get_shared_drives()
         machine_info['space_info'] = self.get_percentage_free_space_each_disk()
-        machine_info['stratup_info'] = self.show_running_on_startup_paths()
-        machine_info['printer_info'] = self.list_printer_info()
-        machine_info['drive_info'] = self.find_drive_types()
-        machine_info['wallpaper_info'] = self.find_current_wallpaper()
+        machine_info['stratup_info'] = self.get_running_on_startup_paths()
+        machine_info['printer_info'] = self.get_printer_info()
+        machine_info['drive_info'] = self.get_drives_type()
+        machine_info['wallpaper_info'] = self.get_current_wallpaper()
         return machine_info
