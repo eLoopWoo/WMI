@@ -4,7 +4,7 @@ import win32api
 import win32con
 
 
-class machine(object):
+class Machine(object):
     def __init__(self, ip=None):
         if ip:
             self.wmi = wmi.WMI(ip)
