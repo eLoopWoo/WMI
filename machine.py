@@ -11,30 +11,38 @@ class Machine(object):
         else:
             self.wmi = wmi.WMI()
 
-    def list_all_running_processes(self):
-        running_processes = {}
-        for process in self.wmi.Win32_Process():
-            running_processes[process.ProcessId] = process.Name
-        return running_processes
+    def get_operating_system(self):
+        return self.wmi.Win32_OperatingSystem()
 
-    def percentage_free_space_each_disk(self):
+    def get_processes(self):
+        processes = {}
+        for process in self.wmi.Win32_Process():
+            processes[process.ProcessId] = process.Name
+        return processes
+
+    def get_percentage_free_space_each_disk(self):
         disks = {}
         for disk in self.wmi.Win32_LogicalDisk(DriveType=3):
             disks[disk.Caption] = "%0.2f%% free" % (100.0 * long(disk.FreeSpace) / long(disk.Size))
         return disks
 
-    def show_network_ip_mac_addresses(self):
+    def get_network_ip_mac_addresses(self):
         network = {}
         for interface in self.wmi.Win32_NetworkAdapterConfiguration(IPEnabled=1):
-            # print interface.Description, interface.MACAddress
-            flag = 1
-            for ip_address in interface.IPAddress:
-                if flag > 0:
-                    temp = ip_address
-                    flag *= -1
+            for index, data in enumerate(interface.IPAddress):
+                interface_info = dict()
+                if index == 0:
+                    interface_info['ipv4_address'] = data
+                if index == 1:
+                    interface_info['ip_mac_address'] = data
+                if index == 2:
+                    interface_info['ipv6_address'] = data
                 else:
-                    network[temp] = ip_address
-                    flag *= -1
+                    if 'undefined_data' not in interface_info:
+                        interface_info['undefined_data'] = []
+                    interface_info['undefined_data'].append(data)
+            ipv4_address = interface_info['ipv4_address']
+            network[ipv4_address] = interface_info
         return network
 
     def show_running_on_startup_paths(self):
@@ -99,10 +107,11 @@ class Machine(object):
         return desktops
 
     # def list_registry_keys(self):
+    #     wmi.WMI("HOSTNAME", user=r"domain\user", password="password")
     #     r = wmi.Registry()
     #     result, names = r.EnumKey(
     #         hDefKey=_winreg.HKEY_LOCAL_MACHINE,
-    #         sSubKeyName="Software"
+    #         sSubKeyName="SOFTWARE"
     #     )
     #     keys = []
     #     for key in names:
@@ -111,11 +120,11 @@ class Machine(object):
 
     def get_info(self):
         machine_info = dict()
-        machine_info['network_info'] = self.show_network_ip_mac_addresses()
+        machine_info['network_info'] = self.get_network_ip_mac_addresses()
         machine_info['diks_info'] = self.list_disk_partitions()
-        machine_info['proc_info'] = self.list_all_running_processes()
+        machine_info['proc_info'] = self.get_processes()
         machine_info['shared_info'] = self.list_shared_drives()
-        machine_info['space_info'] = self.percentage_free_space_each_disk()
+        machine_info['space_info'] = self.get_percentage_free_space_each_disk()
         machine_info['stratup_info'] = self.show_running_on_startup_paths()
         machine_info['printer_info'] = self.list_printer_info()
         machine_info['drive_info'] = self.find_drive_types()
