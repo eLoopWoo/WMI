@@ -4,7 +4,6 @@ from pprint import pprint
 
 def main():
     me = Machine()
-    # pprint(me.list_registry_keys())
     pprint(me.get_info())
 
 

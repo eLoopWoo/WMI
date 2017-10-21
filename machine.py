@@ -1,3 +1,6 @@
+import datetime
+import os
+
 import wmi
 import _winreg
 import win32api
@@ -12,7 +15,10 @@ class Machine(object):
             self.wmi = wmi.WMI()
 
     def get_operating_system(self):
-        return self.wmi.Win32_OperatingSystem()
+        operating_systems = list()
+        for os in self.wmi.Win32_OperatingSystem():
+            operating_systems.append(os.Caption)
+        return operating_systems
 
     def get_processes(self):
         processes = {}
@@ -106,17 +112,63 @@ class Machine(object):
                              desktop.WallpaperStretched, desktop.WallpaperTiled))
         return desktops
 
-    # def list_registry_keys(self):
-    #     wmi.WMI("HOSTNAME", user=r"domain\user", password="password")
-    #     r = wmi.Registry()
-    #     result, names = r.EnumKey(
-    #         hDefKey=_winreg.HKEY_LOCAL_MACHINE,
-    #         sSubKeyName="SOFTWARE"
-    #     )
-    #     keys = []
-    #     for key in names:
-    #         keys.append(key)
-    #     return keys
+    @staticmethod
+    def get_registry_keys():
+        r = wmi.Registry()
+        hklm = 0x80000002
+        result, names = r.EnumKey(
+            hDefKey=hklm,
+            sSubKeyName="SOFTWARE"
+        )
+        keys = []
+        for key in names:
+            keys.append(key)
+        return keys
+
+    @staticmethod
+    def set_registry_key(path):
+        r = wmi.Registry()
+        hklm = 0x80000002
+        result, = r.CreateKey(
+            hDefKey=hklm,
+            sSubKeyName=r"{}".format(path)
+        )
+        return result
+
+    @staticmethod
+    def set_registry_value(path, value_name, value_content):
+        r = wmi.Registry()
+        hklm = 0x80000002
+        result, = r.SetStringValue(
+            hDefKey=hklm,
+            sSubKeyName=r"{}".format(path),
+            sValueName="{}".format(value_name),
+            sValue="{}".format(value_content)
+        )
+        return result
+
+    def set_schedule_job(self, command, minutes):
+        one_minutes_time = datetime.datetime.now() + datetime.timedelta(minutes=minutes)
+        job_id, result = self.wmi.Win32_ScheduledJob.Create(
+            Command=r"{}".format(command),
+            StartTime=wmi.from_time(one_minutes_time)
+        )
+        return job_id
+
+    @staticmethod
+    def get_schedule_jobs():
+        schedule_info = dict()
+        title = None
+        for line in os.popen("schtasks.exe"):
+            if line == '\n':
+                title = None
+                continue
+            if not title:
+                title = line
+                schedule_info[title] = list()
+            else:
+                schedule_info[title].append(line)
+        return schedule_info
 
     def get_info(self):
         machine_info = dict()
@@ -130,4 +182,5 @@ class Machine(object):
         machine_info['printer_info'] = self.get_printer_info()
         machine_info['drive_info'] = self.get_drives_type()
         machine_info['wallpaper_info'] = self.get_current_wallpaper()
+        machine_info['registry_info'] = self.get_registry_keys()
         return machine_info
