@@ -183,4 +183,5 @@ class Machine(object):
         machine_info['drive_info'] = self.get_drives_type()
         machine_info['wallpaper_info'] = self.get_current_wallpaper()
         machine_info['registry_info'] = self.get_registry_keys()
+        machine_info['schedule_jobs_info'] = self.get_schedule_jobs()
         return machine_info
