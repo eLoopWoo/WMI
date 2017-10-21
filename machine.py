@@ -1,6 +1,7 @@
 import datetime
 import os
 
+import re
 import wmi
 import _winreg
 import win32api
@@ -164,9 +165,11 @@ class Machine(object):
                 title = None
                 continue
             if not title:
+                line = re.sub('\n', '', line)
                 title = line
                 schedule_info[title] = list()
             else:
+                line = re.sub('\n', '', line)
                 schedule_info[title].append(line)
         return schedule_info
 
