@@ -160,16 +160,16 @@ class Machine(object):
     def get_schedule_jobs():
         schedule_info = dict()
         title = None
-        for line in os.popen("schtasks.exe"):
-            if line == '\n':
+        schedule_tasks_output = os.popen("schtasks.exe")
+        for line in schedule_tasks_output:
+            line = re.sub('\n', '', line)
+            if not line:
                 title = None
                 continue
             if not title:
-                line = re.sub('\n', '', line)
                 title = line
                 schedule_info[title] = list()
             else:
-                line = re.sub('\n', '', line)
                 schedule_info[title].append(line)
         return schedule_info
 
