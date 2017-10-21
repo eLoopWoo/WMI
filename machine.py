@@ -97,11 +97,11 @@ class Machine(object):
             drives[drive.Caption] = DRIVE_TYPES[drive.DriveType]
         return drives
 
-    def run_process_minimised(self, proc):
+    def run_process_minimised(self, command):
         SW_SHOWMINIMIZED = 1
         startup = self.wmi.Win32_ProcessStartup.new(ShowWindow=SW_SHOWMINIMIZED)
         pid, result = self.wmi.Win32_Process.Create(
-            CommandLine=proc,
+            CommandLine=command,
             ProcessStartupInformation=startup
         )
         return pid
