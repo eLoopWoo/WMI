@@ -10,10 +10,8 @@ import win32con
 
 class Machine(object):
     def __init__(self, ip=None):
-        if ip:
-            self.wmi = wmi.WMI(ip)
-        else:
-            self.wmi = wmi.WMI()
+        self.ip = ip
+        self.wmi = wmi.WMI(self.ip)
 
     def get_operating_system(self):
         operating_systems = list()
@@ -113,9 +111,8 @@ class Machine(object):
                              desktop.WallpaperStretched, desktop.WallpaperTiled))
         return desktops
 
-    @staticmethod
-    def get_registry_keys():
-        r = wmi.Registry()
+    def get_registry_keys(self):
+        r = wmi.Registry(self.ip)
         hklm = 0x80000002
         result, names = r.EnumKey(
             hDefKey=hklm,
@@ -126,9 +123,8 @@ class Machine(object):
             keys.append(key)
         return keys
 
-    @staticmethod
-    def set_registry_key(path):
-        r = wmi.Registry()
+    def set_registry_key(self, path):
+        r = wmi.Registry(self.ip)
         hklm = 0x80000002
         result, = r.CreateKey(
             hDefKey=hklm,
@@ -136,9 +132,8 @@ class Machine(object):
         )
         return result
 
-    @staticmethod
-    def set_registry_value(path, value_name, value_content):
-        r = wmi.Registry()
+    def set_registry_value(self, path, value_name, value_content):
+        r = wmi.Registry(self.ip)
         hklm = 0x80000002
         result, = r.SetStringValue(
             hDefKey=hklm,
@@ -156,22 +151,22 @@ class Machine(object):
         )
         return job_id
 
-    @staticmethod
-    def get_schedule_jobs():
-        schedule_info = dict()
-        title = None
-        schedule_tasks_output = os.popen("schtasks.exe")
-        for line in schedule_tasks_output:
-            line = re.sub('\n', '', line)
-            if not line:
-                title = None
-                continue
-            if not title:
-                title = line
-                schedule_info[title] = list()
-            else:
-                schedule_info[title].append(line)
-        return schedule_info
+    # @staticmethod
+    # def get_schedule_jobs():
+    #     schedule_info = dict()
+    #     title = None
+    #     schedule_tasks_output = os.popen("schtasks.exe")
+    #     for line in schedule_tasks_output:
+    #         line = re.sub('\n', '', line)
+    #         if not line:
+    #             title = None
+    #             continue
+    #         if not title:
+    #             title = line
+    #             schedule_info[title] = list()
+    #         else:
+    #             schedule_info[title].append(line)
+    #     return schedule_info
 
     def get_info(self):
         machine_info = dict()
@@ -186,5 +181,5 @@ class Machine(object):
         machine_info['drive_info'] = self.get_drives_type()
         machine_info['wallpaper_info'] = self.get_current_wallpaper()
         machine_info['registry_info'] = self.get_registry_keys()
-        machine_info['schedule_jobs_info'] = self.get_schedule_jobs()
+        # machine_info['schedule_jobs_info'] = self.get_schedule_jobs()
         return machine_info
