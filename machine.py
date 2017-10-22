@@ -20,19 +20,19 @@ class Machine(object):
         return operating_systems
 
     def get_processes(self):
-        processes = {}
+        processes = dict()
         for process in self.wmi.Win32_Process():
             processes[process.ProcessId] = process.Name
         return processes
 
     def get_percentage_free_space_each_disk(self):
-        disks = {}
+        disks = dict()
         for disk in self.wmi.Win32_LogicalDisk(DriveType=3):
             disks[disk.Caption] = "%0.2f%% free" % (100.0 * long(disk.FreeSpace) / long(disk.Size))
         return disks
 
     def get_network_ip_mac_addresses(self):
-        network = {}
+        network = dict()
         for interface in self.wmi.Win32_NetworkAdapterConfiguration(IPEnabled=1):
             interface_info = dict()
             for index, data in enumerate(interface.IPAddress):
@@ -52,32 +52,32 @@ class Machine(object):
         return network
 
     def get_running_on_startup_paths(self):
-        startup_paths = []
+        startup_paths = list()
         for s in self.wmi.Win32_StartupCommand():
             startup_paths.append("[%s] %s <%s>" % (s.Location, s.Caption, s.Command))
         return startup_paths
 
     def get_shared_drives(self):
-        shared_drives = {}
+        shared_drives = dict()
         for share in self.wmi.Win32_Share():
             shared_drives[share.Name] = share.Path
         return shared_drives
 
     def get_printer_info(self):
-        printer_info = {}
+        printer_info = dict()
         for printer in self.wmi.Win32_Printer():
             for job in self.wmi.Win32_PrintJob(DriverName=printer.DriverName):
                 printer_info[printer.Caption] = job.Document
         return printer_info
 
     def get_disk_partitions(self):
-        hard_drives = {}
+        hard_drives = dict()
         for physical_disk in self.wmi.Win32_DiskDrive():
-            hard_drives[physical_disk.Caption] = {}
+            hard_drives[physical_disk.Caption] = dict()
             for partition in physical_disk.associators("Win32_DiskDriveToDiskPartition"):
-                hard_drives[physical_disk.Caption][partition.Caption] = {}
+                hard_drives[physical_disk.Caption][partition.Caption] = dict()
                 for logical_disk in partition.associators("Win32_LogicalDiskToPartition"):
-                    hard_drives[physical_disk.Caption][partition.Caption][logical_disk.Caption] = {}
+                    hard_drives[physical_disk.Caption][partition.Caption][logical_disk.Caption] = dict()
         return hard_drives
 
     def get_drives_type(self):
@@ -90,7 +90,7 @@ class Machine(object):
             5: "Compact Disc",
             6: "RAM Disk"
         }
-        drives = {}
+        drives = dict()
         for drive in self.wmi.Win32_LogicalDisk():
             drives[drive.Caption] = DRIVE_TYPES[drive.DriveType]
         return drives
@@ -105,7 +105,7 @@ class Machine(object):
         return pid
 
     def get_current_wallpaper(self):
-        desktops = []
+        desktops = list()
         for desktop in self.wmi.Win32_Desktop():
             desktops.append((desktop.Wallpaper or "[No Wallpaper]",
                              desktop.WallpaperStretched, desktop.WallpaperTiled))
@@ -118,7 +118,7 @@ class Machine(object):
             hDefKey=hklm,
             sSubKeyName="SOFTWARE"
         )
-        keys = []
+        keys = list()
         for key in names:
             keys.append(key)
         return keys
